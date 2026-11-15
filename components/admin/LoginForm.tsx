@@ -8,7 +8,7 @@ export default function LoginForm({ configured }: { configured: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(configured ? "" : "Admin login isn’t set up yet. Add ADMIN_EMAILS and ADMIN_SESSION_SECRET to .env.local.");
+  const [error, setError] = useState(configured ? "" : "Admin login isn’t set up yet. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
   const [busy, setBusy] = useState(false);
 
   async function submit(ev: FormEvent) {

@@ -5,7 +5,7 @@ import Countdown from "./Countdown";
 
 export default function Hero() {
   return (
-    <header className="hero-dark relative overflow-hidden min-h-[100svh] flex snap-start flex-col items-center justify-center text-center px-6 py-6 motion-reduce:bg-[#1f1a17]">
+    <header className="hero-dark relative overflow-hidden min-h-[100svh] flex snap-start flex-col items-center justify-center text-center px-6 py-6">
       <div className="hero-seq relative flex flex-col items-center max-w-4xl">
         <Monogram className="w-[clamp(5rem,min(21vh,38vw),14rem)]" />
         <h1 className="mt-[2.5vh] font-script text-cocoa text-[clamp(2.6rem,min(14vh,17vw),8rem)] leading-[1.05] flex flex-col sm:flex-row items-center sm:items-baseline sm:gap-4">

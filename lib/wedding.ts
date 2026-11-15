@@ -13,8 +13,8 @@ export const WEDDING = {
   targetISO: "2027-06-06T00:00:00+08:00",
   verse: "“When the time is right, I, the Lord will make it happen.”",
   verseRef: "Isaiah 60:22",
-  /* Placeholder: replace with the real formal invitation link when it is ready. */
-  invitationUrl: "https://www.google.com",
+  /* The "View formal invitation" button only shows when this has a link. Leave it empty to hide the button. */
+  invitationUrl: "", // was a placeholder (https://www.google.com); paste the real link here when it is ready
   events: [
     { id: "ceremony", title: "The Ceremony", icon: Church, time: "Time to be announced", venue: "St. Isidore the Farmer Parish Church", address: "San Isidro, San Juan, Ilocos Sur · Archdiocese of Nueva Segovia", map: "https://www.google.com/maps/search/?api=1&query=St.+Isidore+the+Farmer+Parish+Church+San+Isidro+San+Juan+Ilocos+Sur" },
     { id: "reception", title: "The Reception", icon: Wine, time: "Time to be announced", venue: "Paradise Viewdeck Resort", address: "Address to follow with the formal invitation", map: "https://www.google.com/maps/search/?api=1&query=Paradise+Viewdeck+Resort" },

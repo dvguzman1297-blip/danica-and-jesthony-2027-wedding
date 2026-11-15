@@ -26,12 +26,12 @@ Guests find their invitation by name, then reply. Each invitation is a group: th
 Without these variables, replies are only printed in the server console. Never expose the service role key in client code; it is only used in `app/api/rsvp/route.ts`.
 
 ## Admin (responses and seating)
-Open `/admin` and sign in with a Supabase Auth user (Supabase dashboard > Authentication > Users > Add user). Only emails listed in `ADMIN_EMAILS` (comma-separated, in `.env.local`) may open it; removing or banning the user in Supabase locks them out. `ADMIN_SESSION_SECRET` signs the login cookie (use a long random string).
+Open `/admin` and sign in with any user from Supabase (dashboard > Authentication > Users > Add user). Deleting or banning the user locks them out. No extra settings are needed; the login cookie is signed with the service role key.
 - Responses: confirmed, pending and declined guests, with email and notes.
 - Seating: add tables, seat confirmed and pending guests (one at a time or a whole invitation), export a CSV.
 Run the latest `supabase/schema.sql` once so the seating tables exist.
 
 ## Deploy (Vercel)
 1. Push the project to GitHub and import it in Vercel.
-2. Add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and the `ADMIN_EMAILS` and `ADMIN_SESSION_SECRET` under Settings, Environment Variables.
+2. Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (plus the `RESEND_API_KEY` and `EMAIL_*` values if you want reply emails) under Settings, Environment Variables.
 3. Deploy, then share the link.

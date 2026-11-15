@@ -25,9 +25,11 @@ export default function Welcome() {
               Come celebrate with us at the ceremony, and stay for the reception that follows.
             </p>
           </div>
-          <a href={WEDDING.invitationUrl} target="_blank" rel="noopener noreferrer" className="btn mt-8 inline-flex items-center gap-2 rounded-full border border-cocoa px-7 py-3 text-base tracking-wide text-cocoa">
-            View formal invitation <ExternalLink size={16} strokeWidth={1.5} />
-          </a>
+          {WEDDING.invitationUrl && (
+            <a href={WEDDING.invitationUrl} target="_blank" rel="noopener noreferrer" className="btn mt-8 inline-flex items-center gap-2 rounded-full border border-cocoa px-7 py-3 text-base tracking-wide text-cocoa">
+              View formal invitation <ExternalLink size={16} strokeWidth={1.5} />
+            </a>
+          )}
         </div>
 
         {/* Photo: arch-shaped frame with a gold outline and an offset second outline */}

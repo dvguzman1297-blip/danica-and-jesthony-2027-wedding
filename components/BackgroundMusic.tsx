@@ -14,23 +14,21 @@ export default function BackgroundMusic() {
     if (!audio) return;
     audio.volume = 0.5;
 
-    const start = () => audio.play().catch(() => {});
-
-    // Browsers block sound before the visitor interacts, so try now and fall back to the first tap/click/scroll.
-    audio.play().catch(() => {
-      const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
-      const once = () => {
-        start();
-        events.forEach((e) => window.removeEventListener(e, once));
-      };
-      events.forEach((e) => window.addEventListener(e, once, { passive: true }));
-    });
+    // Browsers only allow sound after a real gesture (click, tap, key press). Scrolling does NOT count.
+    // So try right away, and if blocked, keep trying on each gesture until one works.
+    const events = ["pointerdown", "pointerup", "click", "touchend", "keydown"] as const;
+    const detach = () => events.forEach((e) => window.removeEventListener(e, tryPlay));
+    function tryPlay() {
+      audio!.play().then(detach).catch(() => { /* blocked: wait for the next gesture */ });
+    }
+    audio.play().catch(() => events.forEach((e) => window.addEventListener(e, tryPlay)));
 
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
     return () => {
+      detach();
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
     };

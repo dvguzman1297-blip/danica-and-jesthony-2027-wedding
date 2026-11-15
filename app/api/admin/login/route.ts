@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const user = await signIn(email, password).catch(() => null);
   if (!user) {
     noteFailure(ip);
-    return NextResponse.json({ error: "Wrong email or password, or this account can’t open the dashboard." }, { status: 401 });
+    return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
   }
   clearFailures(ip);
   const res = NextResponse.json({ ok: true });

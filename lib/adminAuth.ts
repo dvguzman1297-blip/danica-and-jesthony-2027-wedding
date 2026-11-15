@@ -2,32 +2,29 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 /*
-  Admin login = Supabase Auth.
-  - Credentials are checked by Supabase (Authentication > Users in the dashboard).
-  - ADMIN_EMAILS (comma-separated) says which of those Auth users may open /admin. This project's Auth list may hold
-    other people (or sign-ups), so being a Supabase user alone is not enough.
-  - After sign-in we set our own signed cookie. On every request we re-check that the user still exists, is not banned
-    and is still in ADMIN_EMAILS, so removing someone in Supabase locks them out right away.
+  Admin login = your Supabase Auth users (Supabase dashboard > Authentication > Users).
+  - Supabase checks the email and password. Anyone in that list can open /admin.
+  - After sign-in we set a signed cookie. It is signed with the service role key, so no extra secret is needed.
+  - On every request we re-check with Supabase that the user still exists, is confirmed and is not banned,
+    so deleting or banning someone in Supabase locks them out within about 30 seconds.
 */
 
 export const SESSION_COOKIE = "admin_session";
 const MAX_AGE_S = 60 * 60 * 12; // 12 hours
 
-const secret = () => process.env.ADMIN_SESSION_SECRET || "";
 const sbUrl = () => process.env.SUPABASE_URL;
 const sbKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY;
-const allowed = () => (process.env.ADMIN_EMAILS ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 
-export const authConfigured = () => Boolean(sbUrl() && sbKey() && secret().length >= 16 && allowed().length > 0);
+export const authConfigured = () => Boolean(sbUrl() && sbKey());
 
-const sign = (payload: string) => createHmac("sha256", secret()).update(payload).digest("hex");
+const sign = (payload: string) => createHmac("sha256", sbKey()!).update(payload).digest("hex");
 const authHeaders = () => ({ apikey: sbKey()!, Authorization: `Bearer ${sbKey()!}` });
 
-type AuthUser = { id: string; email?: string; banned_until?: string | null };
+type AuthUser = { id: string; email?: string; email_confirmed_at?: string | null; banned_until?: string | null };
 
-const okUser = (u: AuthUser) => !!u.email && allowed().includes(u.email.toLowerCase()) && !(u.banned_until && new Date(u.banned_until).getTime() > Date.now());
+const okUser = (u: AuthUser) => !!u.email_confirmed_at && !(u.banned_until && new Date(u.banned_until).getTime() > Date.now());
 
-/** Checks email + password with Supabase Auth. Returns the user id when they may use the admin area. */
+/** Checks email + password with Supabase Auth. Returns the user id when the account may use the admin area. */
 export async function signIn(email: string, password: string): Promise<{ id: string } | null> {
   if (!authConfigured() || !email || !password) return null;
   const res = await fetch(`${sbUrl()}/auth/v1/token?grant_type=password`, {

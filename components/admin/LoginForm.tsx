@@ -30,7 +30,7 @@ export default function LoginForm({ configured }: { configured: boolean }) {
   return (
     <main className="flex min-h-[100svh] items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <Monogram className="w-24" />
+        <Monogram className="w-20" />
         <h1 className="mt-4 text-center font-script text-5xl text-cocoa">Welcome back</h1>
         <p className="mt-1 text-center text-mute">Sign in to see the guest list and seating.</p>
         <form onSubmit={submit} className="frame mt-8 space-y-6 rounded-sm border border-line bg-card p-7">

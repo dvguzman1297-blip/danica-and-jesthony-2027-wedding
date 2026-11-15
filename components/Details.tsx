@@ -1,6 +1,7 @@
 import { Clock, ExternalLink, Landmark, MapPin } from "lucide-react";
 import { WEDDING, ROUTE } from "@/lib/wedding";
 import Reveal from "./Reveal";
+import VenueVideo from "./VenueVideo";
 
 export default function Details() {
   return (
@@ -28,6 +29,7 @@ export default function Details() {
                           <div className="flex gap-2.5"><MapPin size={16} strokeWidth={1.5} className="mt-1.5 shrink-0 text-sage" /><dd className="text-mute">{ev.address}</dd></div>
                           <div className="flex gap-2.5"><Clock size={16} strokeWidth={1.5} className="mt-1.5 shrink-0 text-sage" /><dd className="text-mute">{ev.time}</dd></div>
                         </dl>
+                        {ev.id === "reception" && <VenueVideo />}
                       </div>
                     </div>
                   );

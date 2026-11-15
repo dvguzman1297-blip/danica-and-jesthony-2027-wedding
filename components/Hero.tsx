@@ -7,7 +7,7 @@ export default function Hero() {
   return (
     <header className="hero-dark relative overflow-hidden min-h-[100svh] flex snap-start flex-col items-center justify-center text-center px-6 py-6">
       <div className="hero-seq relative flex flex-col items-center max-w-4xl">
-        <Monogram className="w-[clamp(5rem,min(21vh,38vw),14rem)]" />
+        <Monogram className="w-[clamp(4.5rem,min(18vh,33vw),12rem)]" />
         <h1 className="mt-[2.5vh] font-script text-cocoa text-[clamp(2.6rem,min(14vh,17vw),8rem)] leading-[1.05] flex flex-col sm:flex-row items-center sm:gap-[0.35em]">
           {WEDDING.bride}
           <span className="block font-script text-[0.7em] leading-none my-1 sm:my-0" aria-label="and">&amp;</span>

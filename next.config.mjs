@@ -6,7 +6,7 @@ const longCache = [{ key: "Cache-Control", value: "public, max-age=31536000, imm
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
-    return ["/music.mp3", "/background.mp4", "/viewdeck.mp4"].map((source) => ({ source, headers: longCache }));
+    return ["/music-v2.mp3","/background.mp4", "/viewdeck.mp4"].map((source) => ({ source, headers: longCache }));
   },
 };
 export default nextConfig;

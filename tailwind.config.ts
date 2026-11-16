@@ -6,7 +6,7 @@ const config: Config = {
     extend: {
       colors: {
         paper: "var(--paper)", card: "var(--card)", ink: "var(--ink)", mute: "var(--mute)",
-        line: "var(--line)", champ: "var(--champ)", sage: "var(--sage)", cocoa: "var(--cocoa)",
+        line: "var(--line)", "line-ui": "var(--line-ui)", champ: "var(--champ)", sage: "var(--sage)", cocoa: "var(--cocoa)",
       },
       fontFamily: {
         serif: ["var(--font-serif)", "Georgia", "serif"],

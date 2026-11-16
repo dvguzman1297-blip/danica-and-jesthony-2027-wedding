@@ -60,7 +60,7 @@ export default function BackgroundMusic() {
     return () => document.removeEventListener("pointerdown", away);
   }, [open]);
 
-  const Icon = !playing || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+  const Icon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
     <>

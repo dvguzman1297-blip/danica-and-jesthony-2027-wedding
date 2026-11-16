@@ -31,7 +31,7 @@ function Err({ msg }: { msg?: string }) {
 function Choice({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button type="button" role="radio" aria-checked={active} onClick={onClick}
-      className={`btn flex-1 flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-sm border px-3 font-serif text-base sm:h-[46px] sm:text-lg ${active ? "bg-cocoa text-[color:var(--btn-text)] border-cocoa" : "border-line text-ink hover:border-champ"}`}>
+      className={`btn flex-1 flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-sm border px-3 font-serif text-base sm:h-[46px] sm:text-lg ${active ? "bg-cocoa text-[color:var(--btn-text)] border-cocoa" : "border-line-ui text-ink hover:border-champ"}`}>
       {children}
     </button>
   );
@@ -147,7 +147,7 @@ export default function Rsvp() {
       <section key="search" id="rsvp" className={SECTION}>
         <Reveal className="w-full max-w-xl mx-auto">
           <div className="hero-dark text-center">
-            <h2 className="font-script text-5xl sm:text-6xl text-cocoa">Kindly reply</h2>
+            <h2 className="font-script gold-text text-5xl sm:text-6xl text-cocoa">Kindly reply</h2>
             <p className="mt-3 text-lg text-mute">Find your invitation by name, then tell us who is coming.</p>
           </div>
           <form onSubmit={find} noValidate className="frame mt-8 rounded-sm border border-line bg-card p-5 sm:mt-10 sm:p-10">
@@ -155,7 +155,7 @@ export default function Rsvp() {
             <div className="mt-1 flex flex-col gap-4 sm:flex-row sm:items-end">
               <input id="search" className="field" placeholder="Type your name" autoComplete="off" value={query} aria-invalid={!!searchError}
                 onChange={(e) => { setQuery(e.target.value); if (searchError) setSearchError(""); }} />
-              <button type="submit" disabled={searching} className="btn inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-cocoa px-7 py-3.5 text-base sm:py-3 sm:text-[0.95rem] tracking-wide text-[color:var(--btn-text)] disabled:opacity-60">
+              <button type="submit" disabled={searching} className="btn btn-gold inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-cocoa px-7 py-3.5 text-base sm:py-3 sm:text-[0.95rem] tracking-wide text-[color:var(--btn-text)] disabled:opacity-60">
                 <Search size={17} strokeWidth={1.5} />{searching ? "Searching…" : "Find my invitation"}
               </button>
             </div>
@@ -225,10 +225,10 @@ export default function Rsvp() {
                   {party.map((p) => {
                     const on = f.attendees.includes(p);
                     return (
-                      <label key={p} className={`flex cursor-pointer items-center gap-3 rounded-sm border px-4 py-3 transition-colors sm:py-2.5 ${on ? "border-cocoa bg-cocoa/5" : "border-line hover:border-champ"}`}>
+                      <label key={p} className={`flex cursor-pointer items-center gap-3 rounded-sm border px-4 py-3 transition-colors sm:py-2.5 ${on ? "border-cocoa bg-cocoa/5" : "border-line-ui hover:border-champ"}`}>
                         <input type="checkbox" className="peer sr-only" checked={on}
                           onChange={() => set("attendees", on ? f.attendees.filter((x) => x !== p) : party.filter((x) => x === p || f.attendees.includes(x)))} />
-                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-champ ${on ? "border-cocoa bg-cocoa text-[color:var(--btn-text)]" : "border-line"}`}>{on && <Check size={14} strokeWidth={2} />}</span>
+                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-champ ${on ? "border-cocoa bg-cocoa text-[color:var(--btn-text)]" : "border-line-ui"}`}>{on && <Check size={14} strokeWidth={2} />}</span>
                         <span className="font-serif text-lg leading-tight">{p}</span>
                       </label>
                     );
@@ -257,7 +257,7 @@ export default function Rsvp() {
           </div>
 
           {serverError && <p role="alert" className="text-sm text-[#b4483a] flex items-center gap-1.5"><CircleAlert size={14} strokeWidth={1.5} />{serverError}</p>}
-          <button type="submit" disabled={sending} className="btn w-full rounded-full bg-cocoa text-[color:var(--btn-text)] py-4 text-base sm:py-3.5 sm:text-[0.95rem] tracking-wide max-sm:sticky max-sm:bottom-3 max-sm:z-10 max-sm:shadow-[0_10px_24px_-8px_rgba(122,87,16,.6)] inline-flex items-center justify-center gap-2 disabled:opacity-60">
+          <button type="submit" disabled={sending} className="btn btn-gold w-full rounded-full bg-cocoa text-[color:var(--btn-text)] py-4 text-base sm:py-3.5 sm:text-[0.95rem] tracking-wide max-sm:sticky max-sm:bottom-3 max-sm:z-10 max-sm:shadow-[0_10px_24px_-8px_rgba(122,87,16,.6)] inline-flex items-center justify-center gap-2 disabled:opacity-60">
             <Send size={17} strokeWidth={1.5} />{sending ? "Sending…" : "Send my reply"}
           </button>
         </form>

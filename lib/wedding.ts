@@ -21,6 +21,21 @@ export const WEDDING = {
   ] as WeddingEvent[],
 };
 
+/* "Good to know" block. Entries with an empty `text` are hidden, and the whole block hides until at least one is filled in.
+   Example: { label: "Attire", text: "Formal. White and gold accents are welcome." } */
+export const INFO: { label: string; text: string }[] = [
+  { label: "Attire", text: "" },
+  { label: "Parking", text: "" },
+  { label: "Gifts", text: "" },
+  { label: "Questions", text: "" },
+];
+
+/* Add to calendar. All-day for now. When times are confirmed, switch the dates to YYYYMMDDTHHMMSS and update public/danica-jesthony.ics. */
+export const CALENDAR = {
+  google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Danica & Jesthony's Wedding")}&dates=20270606/20270607&location=${encodeURIComponent("St. Isidore the Farmer Parish Church, San Juan, Ilocos Sur")}&details=${encodeURIComponent("Ceremony at St. Isidore the Farmer Parish Church, reception at Paradise Viewdeck Resort. Times to be announced.")}`,
+  ics: "/danica-jesthony.ics",
+};
+
 /* Route from the ceremony (origin) to the reception (destination). No API key needed. */
 const enc = (s: string) => encodeURIComponent(s);
 const from = `${WEDDING.events[0].venue}, ${WEDDING.events[0].address.split(" · ")[0]}`;

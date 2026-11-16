@@ -1,5 +1,5 @@
-import { Clock, ExternalLink, Landmark, MapPin } from "lucide-react";
-import { WEDDING, ROUTE } from "@/lib/wedding";
+import { CalendarPlus, Clock, ExternalLink, Landmark, MapPin } from "lucide-react";
+import { WEDDING, ROUTE, CALENDAR, INFO } from "@/lib/wedding";
 import Reveal from "./Reveal";
 import VenueVideo from "./VenueVideo";
 
@@ -7,7 +7,7 @@ export default function Details() {
   return (
     <section id="details" className="flex min-h-[100svh] snap-start flex-col justify-center px-6 py-12">
       <Reveal className="hero-dark w-full max-w-5xl mx-auto text-center">
-        <h2 className="font-script text-5xl sm:text-6xl text-cocoa">The day</h2>
+        <h2 className="font-script gold-text text-5xl sm:text-6xl text-cocoa">The day</h2>
         <p className="mt-1 text-mute">{WEDDING.dateLong}</p>
       </Reveal>
       <Reveal className="w-full max-w-5xl mx-auto mt-8">
@@ -35,10 +35,23 @@ export default function Details() {
                   );
                 })}
               </div>
-              <div>
-                <a href={ROUTE.open} target="_blank" rel="noopener noreferrer" className="btn inline-flex items-center gap-2 border border-cocoa text-cocoa rounded-full px-5 py-2.5 text-sm">
-                  Get directions <ExternalLink size={15} strokeWidth={1.5} />
-                </a>
+              <div className="space-y-5">
+                {INFO.some((i) => i.text) && (
+                  <dl className="space-y-2 border-t border-line pt-4 text-[0.95rem]">
+                    {INFO.filter((i) => i.text).map((i) => (
+                      <div key={i.label} className="flex gap-3"><dt className="w-24 shrink-0 font-serif text-lg leading-snug text-cocoa">{i.label}</dt><dd className="text-mute">{i.text}</dd></div>
+                    ))}
+                  </dl>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <a href={ROUTE.open} target="_blank" rel="noopener noreferrer" className="btn btn-gold inline-flex items-center gap-2 rounded-full bg-cocoa px-5 py-3 text-sm text-[color:var(--btn-text)]">
+                    Get directions <ExternalLink size={15} strokeWidth={1.5} />
+                  </a>
+                  <a href={CALENDAR.google} target="_blank" rel="noopener noreferrer" className="btn inline-flex items-center gap-2 rounded-full border border-cocoa px-5 py-3 text-sm text-cocoa">
+                    Add to calendar <CalendarPlus size={15} strokeWidth={1.5} />
+                  </a>
+                  <a href={CALENDAR.ics} download className="btn self-center text-sm text-mute underline underline-offset-4">Apple / Outlook (.ics)</a>
+                </div>
               </div>
             </div>
 

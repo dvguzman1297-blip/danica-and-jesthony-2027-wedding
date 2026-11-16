@@ -11,8 +11,8 @@ export default function Welcome() {
           <div className="flex items-center justify-center gap-4 text-champ" aria-hidden="true">
             <span className="h-px flex-1 bg-champ opacity-70" /><Gem size={16} strokeWidth={1.5} /><span className="h-px flex-1 bg-champ opacity-70" />
           </div>
-          <h2 className="mt-6 font-script text-5xl leading-[1.1] text-cocoa sm:text-6xl md:whitespace-nowrap">Together with our families,</h2>
-          <div className="mt-6 space-y-4 text-justify font-serif text-lg leading-relaxed text-ink [hyphens:auto] sm:text-xl">
+          <h2 className="mt-6 font-script gold-text text-5xl leading-[1.1] text-cocoa sm:text-6xl md:whitespace-nowrap">Together with our families,</h2>
+          <div className="mt-6 space-y-4 font-serif text-lg leading-relaxed text-ink sm:text-xl md:text-justify md:[hyphens:auto]">
             <p>
               and by the grace of God, we ask you to be our light as we enter the next chapter of our lives together.
               Your presence will make our wedding day complete.

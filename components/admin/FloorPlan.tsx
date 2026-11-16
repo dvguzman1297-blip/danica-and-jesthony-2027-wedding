@@ -284,7 +284,10 @@ export default function FloorPlan({ data, unseated, people, isSeated, undo, canU
     if (!el) return;
     const measure = () => {
       const w = el.clientWidth;
-      setBox({ w, h: full ? Math.max(320, window.innerHeight - 144) : Math.max(440, window.innerHeight - 300) });
+      // Fill exactly what is left of the window below the toolbar (minus the legend strip), so nothing runs off the screen.
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const legend = 52, gap = 16;
+      setBox({ w, h: full ? Math.max(320, window.innerHeight - 144) : Math.max(320, Math.floor(window.innerHeight - top - legend - gap)) });
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -385,12 +388,18 @@ export default function FloorPlan({ data, unseated, people, isSeated, undo, canU
                 {Array.from({ length: Math.max(t.capacity, occ.length) }).map((_, k, arr) => {
                   const a = (k / arr.length) * 2 * Math.PI - Math.PI / 2;
                   const p = occ[k];
-                  const c = { left: `${50 + 43 * Math.cos(a)}%`, top: `${50 + 43 * Math.sin(a)}%`, width: `${seatPct}%`, height: `${seatPct}%` };
+                  // Seats are sized in room pixels. Zoomed out they are enlarged (as far as the ring and the table allow)
+                  // so the initials stay readable; zoomed in they simply grow with the table.
+                  const tw = (w / 100) * W0;
+                  const natural = (tw * seatPct) / 100;
+                  const fits = (0.92 * 2 * Math.PI * 0.45 * tw) / arr.length;
+                  const size = Math.min(fits, tw * 0.2, Math.max(natural, 26 / k));
+                  const c = { left: `${50 + 45 * Math.cos(a)}%`, top: `${50 + 45 * Math.sin(a)}%`, width: size, height: size };
                   return p ? (
                     <div key={p.key} title={`${p.name} · ${p.status === "confirmed" ? "confirmed" : p.status === "pending" ? "pending" : "not coming"}`}
                       onPointerDown={(e) => begin(e, { kind: "guests", people: [p], label: p.name, x: e.clientX, y: e.clientY })}
                       className={`absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none select-none items-center justify-center rounded-full border font-medium leading-none active:cursor-grabbing ${p.status === "confirmed" ? "border-cocoa bg-cocoa text-[color:var(--btn-text)]" : p.status === "pending" ? "border-champ bg-card text-champ" : "border-[#b4483a] bg-card text-[#b4483a]"}`}
-                      style={{ ...c, fontSize: "0.6rem" }}>{initials(p.name)}</div>
+                      style={{ ...c, fontSize: Math.min(c.width * 0.5, Math.max(c.width * 0.4, 11 / k)), letterSpacing: "0.02em" }}>{initials(p.name)}</div>
                   ) : (
                     <div key={`e${k}`} className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-line" style={c} />
                   );
@@ -402,8 +411,9 @@ export default function FloorPlan({ data, unseated, people, isSeated, undo, canU
                     begin(e, { kind: "table", id: t.id, dx: ((e.clientX - r.left) / r.width) * 100 - x, dy: ((e.clientY - r.top) / r.height) * 100 - y });
                   }}
                   className={`absolute left-1/2 top-1/2 flex aspect-square w-[66%] -translate-x-1/2 -translate-y-1/2 cursor-move touch-none select-none flex-col items-center justify-center rounded-full border-2 text-center shadow-sm transition-colors ${isOver ? (full ? "border-[#b4483a] bg-card" : "border-cocoa bg-line") : "border-champ bg-card"}`}>
-                  <span className="max-w-[90%] truncate font-serif leading-tight text-cocoa">{t.name}</span>
-                  <span className={occ.length > t.capacity ? "text-[#b4483a]" : "text-mute"} style={{ fontSize: "0.75rem" }}>{occ.length} / {t.capacity}</span>
+                  {/* The room is scaled by k, so these sizes are divided by k to stay readable (at least 14px / 12px on screen) when zoomed out. */}
+                  <span className="max-w-[90%] truncate font-serif leading-tight text-cocoa" style={{ fontSize: Math.max(14 / k, 16) }}>{t.name}</span>
+                  <span className={occ.length > t.capacity ? "text-[#b4483a]" : "text-mute"} style={{ fontSize: Math.max(12 / k, 12) }}>{occ.length} / {t.capacity}</span>
                 </div>
               </div>
             );

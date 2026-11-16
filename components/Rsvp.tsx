@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ArrowLeft, Check, CircleAlert, Heart, HeartCrack, MailCheck, Search, Send } from "lucide-react";
 import { WEDDING } from "@/lib/wedding";
 import { partyOf, type Guest } from "@/lib/guests";
@@ -77,6 +77,17 @@ export default function Rsvp() {
     setQuery("");
     setF(EMPTY);
   }
+
+  // Personal link (/?g=<invitation id>): open that invitation straight away, no name search needed.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("g");
+    if (!id) return;
+    fetch(`/api/guests?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { guests?: Guest[] } | null) => { if (d?.guests?.[0]) choose(d.guests[0]); })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function find(ev: FormEvent) {
     ev.preventDefault();

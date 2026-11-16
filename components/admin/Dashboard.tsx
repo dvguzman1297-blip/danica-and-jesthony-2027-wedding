@@ -1,9 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CircleAlert, Download, LogOut, Minus, Plus, Search, Trash2, Undo2, X } from "lucide-react";
+import { CircleAlert, ClipboardCopy, Download, Link2, LogOut, Minus, Pencil, Plus, RefreshCw, Search, Trash2, Undo2, X } from "lucide-react";
 import { partyOf } from "@/lib/guests";
 import FloorPlan, { buildParties, layoutPositions } from "./FloorPlan";
+import GuestsTab, { adminPost, inviteLink } from "./GuestsTab";
+import Monogram from "../Monogram";
 
 type Guest = { id: string; name: string; members: string[] };
 type Rsvp = { guest_id: string; attending: boolean; attendees: string[] | null; guests: number | null; email: string | null; note: string | null; created_at: string };
@@ -30,7 +32,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"responses" | "seating">("responses");
+  const [tab, setTab] = useState<"responses" | "guests" | "seating">("responses");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/data", { cache: "no-store" });
@@ -63,40 +65,56 @@ export default function Dashboard() {
   }, [data]);
 
   return (
-    <main className={`mx-auto px-4 py-6 sm:px-6 ${tab === "seating" ? "max-w-none" : "max-w-6xl sm:px-8"}`}>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-script text-5xl text-cocoa sm:text-6xl">Guest dashboard</h1>
-          <p className="text-mute">Danica &amp; Jesthony · responses and seating</p>
+    <>
+      {/* One slim bar that stays at the top while you scroll: title, tabs and sign out. Same on every tab. */}
+      <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur">
+       <div className="flex flex-wrap items-center gap-x-6 px-4 sm:px-8">
+        <div className="flex items-center gap-2.5 py-1">
+          <Monogram className="w-9 shrink-0 sm:w-11" />
+          <h1 className="font-script text-3xl leading-tight text-cocoa sm:text-4xl">Guest dashboard</h1>
         </div>
-        <button onClick={signOut} className="btn inline-flex items-center gap-2 rounded-full border border-cocoa px-5 py-2 text-sm text-cocoa">
+        <nav className="order-3 -mb-px flex w-full gap-1 sm:order-none sm:w-auto sm:flex-1" role="tablist">
+          {(["responses", "guests", "seating"] as const).map((t) => (
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+              className={`border-b-2 px-4 py-2.5 font-serif text-base capitalize transition-colors sm:text-lg ${tab === t ? "border-cocoa text-cocoa" : "border-transparent text-mute hover:text-ink"}`}>
+              {t}
+            </button>
+          ))}
+        </nav>
+        <button onClick={signOut} className="btn ml-auto inline-flex items-center gap-2 rounded-full border border-cocoa px-4 py-1.5 text-sm text-cocoa">
           <LogOut size={15} strokeWidth={1.5} />Sign out
         </button>
+       </div>
       </header>
 
-      <nav className="mt-6 flex gap-1 border-b border-line" role="tablist">
-        {(["responses", "seating"] as const).map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-5 py-2.5 font-serif text-lg capitalize transition-colors ${tab === t ? "border-cocoa text-cocoa" : "border-transparent text-mute hover:text-ink"}`}>
-            {t}
-          </button>
-        ))}
-      </nav>
+      <main className={`mx-auto px-4 pb-6 sm:px-6 ${tab === "seating" ? "max-w-none" : "max-w-6xl sm:px-8"}`}>
 
       {error && <p role="alert" className="mt-6 flex items-start gap-1.5 text-[#b4483a]"><CircleAlert size={16} strokeWidth={1.5} className="mt-1 shrink-0" />{error}</p>}
       {!data && !error && <p className="mt-10 text-mute">Loading…</p>}
 
-      {data && tab === "responses" && <Responses data={data} people={people} />}
+      {data && tab === "responses" && <Responses data={data} people={people} reload={load} />}
+      {data && tab === "guests" && <GuestsTab data={data} reload={load} />}
       {data && tab === "seating" && <Seating data={data} people={people} reload={load} setData={setData} />}
-    </main>
+      </main>
+    </>
   );
 }
 
 /* ------------------------------ Responses ------------------------------ */
 
-function Responses({ data, people }: { data: Data; people: Person[] }) {
+function Responses({ data, people, reload }: { data: Data; people: Person[]; reload: () => Promise<void> }) {
   const [filter, setFilter] = useState<"all" | "confirmed" | "declined" | "pending">("all");
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"name" | "newest" | "status">("name");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const flash = (m: string) => { setNote(m); setTimeout(() => setNote(""), 2200); };
+  const copyText = async (text: string, ok: string) => {
+    try { await navigator.clipboard.writeText(text); flash(ok); } catch { flash("Could not copy"); }
+  };
+  async function refresh() { setRefreshing(true); await reload(); setRefreshing(false); }
 
   const rows = useMemo(() => {
     const rsvpBy = new Map(data.rsvps.map((r) => [r.guest_id, r]));
@@ -115,10 +133,50 @@ function Responses({ data, people }: { data: Data; people: Person[] }) {
     declined: rows.filter((r) => r.status === "declined").length,
     pending: rows.filter((r) => r.status === "pending").length,
   };
-  const shown = rows.filter((r) => (filter === "all" || r.status === filter) && (!q.trim() || [r.g.name, ...r.party].some((n) => n.toLowerCase().includes(q.trim().toLowerCase()))));
+  const order = { pending: 0, confirmed: 1, declined: 2 };
+  const shown = rows
+    .filter((r) => (filter === "all" || r.status === filter) && (!q.trim() || [r.g.name, ...r.party].some((n) => n.toLowerCase().includes(q.trim().toLowerCase()))))
+    .sort((a, b) =>
+      sort === "newest" ? (b.r ? new Date(b.r.created_at).getTime() : 0) - (a.r ? new Date(a.r.created_at).getTime() : 0)
+      : sort === "status" ? order[a.status] - order[b.status] || a.g.name.localeCompare(b.g.name)
+      : a.g.name.localeCompare(b.g.name));
+
+  /* things the couple should look at */
+  const seated = new Set(data.seats.map((s) => keyOf(s.guest_id, s.person)));
+  const unseatedConfirmed = people.filter((p) => p.status === "confirmed" && !seated.has(p.key)).length;
+  const overTables = data.tables.filter((t) => data.seats.filter((s) => s.table_id === t.id).length > t.capacity);
+  const staleSeats = data.seats.filter((s) => people.find((p) => p.key === keyOf(s.guest_id, s.person))?.status === "declined").length;
+  const flags = [
+    unseatedConfirmed > 0 && `${unseatedConfirmed} confirmed ${unseatedConfirmed === 1 ? "guest has" : "guests have"} no seat yet`,
+    overTables.length > 0 && `${overTables.map((t) => t.name).join(", ")} ${overTables.length === 1 ? "is" : "are"} over capacity`,
+    staleSeats > 0 && `${staleSeats} seated ${staleSeats === 1 ? "guest is" : "guests are"} marked not coming`,
+  ].filter(Boolean) as string[];
+
+  function exportCsv() {
+    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const out = [["Invitation", "Status", "Seats", "Coming", "Not coming", "Email", "Note", "Replied"]];
+    for (const r of rows) {
+      const stay = r.status === "confirmed" ? r.party.filter((p) => !r.coming.includes(p)) : r.status === "declined" ? r.party : [];
+      out.push([r.g.name, LABEL[r.status], String(r.party.length), r.coming.join("; "), stay.join("; "), r.r?.email ?? "", r.r?.note ?? "", r.r ? new Date(r.r.created_at).toLocaleDateString() : ""]);
+    }
+    const blob = new Blob(["﻿" + out.map((r) => r.map(esc).join(",")).join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "rsvp-responses.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  const editing = rows.find((r) => r.g.id === editId);
 
   return (
     <section className="mt-8">
+      {flags.length > 0 && (
+        <div className="mb-4 rounded-sm border border-champ bg-card px-4 py-3 text-sm">
+          <p className="flex items-center gap-1.5 font-serif text-lg text-cocoa"><CircleAlert size={16} strokeWidth={1.5} />Needs attention</p>
+          <ul className="mt-1 list-disc pl-5 text-mute">{flags.map((f) => <li key={f}>{f}</li>)}</ul>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ["Guests confirmed", count("confirmed"), "text-cocoa"],
@@ -144,8 +202,20 @@ function Responses({ data, people }: { data: Data; people: Person[] }) {
         </div>
         <div className="relative w-full sm:w-64">
           <Search size={16} strokeWidth={1.5} className="absolute left-0 top-1/2 -translate-y-1/2 text-mute" />
-          <input className="field pl-7" placeholder="Search a name" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search guests" />
+          <input className="field !pl-7" placeholder="Search a name" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search guests" />
         </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-mute">Sort
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded-full border border-line-ui bg-card px-3 py-1.5 text-ink">
+            <option value="name">Name</option><option value="newest">Newest reply</option><option value="status">Pending first</option>
+          </select>
+        </label>
+        <button onClick={refresh} className="btn inline-flex items-center gap-1.5 rounded-full border border-line-ui px-3 py-1.5 text-ink hover:border-champ"><RefreshCw size={14} strokeWidth={1.5} className={refreshing ? "animate-spin" : ""} />Refresh</button>
+        <button onClick={exportCsv} className="btn inline-flex items-center gap-1.5 rounded-full border border-line-ui px-3 py-1.5 text-ink hover:border-champ"><Download size={14} strokeWidth={1.5} />Export CSV</button>
+        <button onClick={() => { const names = rows.filter((r) => r.status === "pending").map((r) => r.g.name); names.length ? copyText(names.join("\n"), `Copied ${names.length} pending names`) : flash("Nobody is pending"); }} className="btn inline-flex items-center gap-1.5 rounded-full border border-line-ui px-3 py-1.5 text-ink hover:border-champ"><ClipboardCopy size={14} strokeWidth={1.5} />Copy pending names</button>
+        <span role="status" className="text-mute">{note}</span>
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-sm border border-line bg-card">
@@ -157,6 +227,7 @@ function Responses({ data, people }: { data: Data; people: Person[] }) {
               <th className="px-4 py-3 font-normal">Coming</th>
               <th className="px-4 py-3 font-normal">Email &amp; note</th>
               <th className="px-4 py-3 font-normal">Replied</th>
+              <th className="px-4 py-3 font-normal"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -175,13 +246,86 @@ function Responses({ data, people }: { data: Data; people: Person[] }) {
                   {!r?.email && !r?.note && <span className="text-mute">—</span>}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-sm text-mute">{r ? new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"}</td>
+                <td className="whitespace-nowrap px-2 py-3 text-right">
+                  <button onClick={() => copyText(inviteLink(g.id), `Link copied for ${g.name}`)} aria-label={`Copy invite link for ${g.name}`} title="Copy personal invite link" className="btn rounded-full p-2.5 text-cocoa hover:bg-cocoa/5"><Link2 size={16} strokeWidth={1.5} /></button>
+                  <button onClick={() => setEditId(g.id)} aria-label={`${r ? "Edit" : "Enter"} reply for ${g.name}`} title={r ? "Edit reply" : "Enter a reply for them"} className="btn rounded-full p-2.5 text-cocoa hover:bg-cocoa/5"><Pencil size={16} strokeWidth={1.5} /></button>
+                </td>
               </tr>
             ))}
-            {shown.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-mute">No invitations match.</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-mute">No invitations match.</td></tr>}
           </tbody>
         </table>
       </div>
+
+      {editing && <ReplyEditor key={editing.g.id} guest={editing.g} party={editing.party} reply={editing.r} onClose={() => setEditId(null)} onSaved={async () => { setEditId(null); await reload(); flash("Reply saved"); }} />}
     </section>
+  );
+}
+
+/* A reply entered by the couple, e.g. after a phone call. */
+function ReplyEditor({ guest, party, reply, onClose, onSaved }: { guest: Guest; party: string[]; reply?: Rsvp; onClose: () => void; onSaved: () => Promise<void> }) {
+  const [attending, setAttending] = useState<boolean | null>(reply ? reply.attending : null);
+  const [who, setWho] = useState<string[]>(reply?.attending ? reply.attendees ?? [] : party);
+  const [email, setEmail] = useState(reply?.email ?? "");
+  const [text, setText] = useState(reply?.note ?? "");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (attending === null) { setErr("Choose whether they can join."); return; }
+    setBusy(true); setErr("");
+    const r = await adminPost("/api/admin/reply", { guestId: guest.id, attending, attendees: who, email, note: text });
+    setBusy(false);
+    if (!r.ok) { setErr(r.error!); return; }
+    await onSaved();
+  }
+  async function clear() {
+    if (!window.confirm(`Clear ${guest.name}’s reply? They go back to pending.`)) return;
+    setBusy(true);
+    const r = await adminPost("/api/admin/reply", { action: "clear", guestId: guest.id });
+    setBusy(false);
+    if (!r.ok) { setErr(r.error!); return; }
+    await onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={`Reply for ${guest.name}`} onClick={onClose}>
+      <div className="max-h-[90svh] w-full max-w-lg overflow-y-auto rounded-t-lg bg-card p-5 sm:rounded-sm sm:p-7" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-script text-4xl text-cocoa">{guest.name}</h2>
+        <p className="text-sm text-mute">{reply ? "Change this reply" : "Enter a reply for them"}</p>
+
+        <div className="mt-4 flex gap-2" role="radiogroup" aria-label="Reply">
+          {([[true, "Joyfully accepts"], [false, "Regretfully declines"]] as const).map(([v, label]) => (
+            <button key={label} type="button" role="radio" aria-checked={attending === v} onClick={() => setAttending(v)}
+              className={`btn flex-1 rounded-sm border px-3 py-3 font-serif text-base ${attending === v ? "border-cocoa bg-cocoa text-[color:var(--btn-text)]" : "border-line-ui text-ink"}`}>{label}</button>
+          ))}
+        </div>
+
+        {attending && (
+          <fieldset className="mt-4 space-y-2">
+            <legend className="mb-1 text-sm text-mute">Who is coming?</legend>
+            {party.map((p) => (
+              <label key={p} className="flex cursor-pointer items-center gap-3 rounded-sm border border-line-ui px-4 py-3">
+                <input type="checkbox" checked={who.includes(p)} onChange={() => setWho(who.includes(p) ? who.filter((x) => x !== p) : party.filter((x) => x === p || who.includes(x)))} className="h-5 w-5 accent-[#7a5710]" />
+                <span className="font-serif text-lg">{p}</span>
+              </label>
+            ))}
+          </fieldset>
+        )}
+
+        <label htmlFor="rep-email" className="mt-4 block text-sm text-mute">Email (optional)</label>
+        <input id="rep-email" type="email" className="field" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label htmlFor="rep-note" className="mt-3 block text-sm text-mute">Note (optional)</label>
+        <input id="rep-note" className="field" value={text} onChange={(e) => setText(e.target.value)} />
+
+        {err && <p role="alert" className="mt-3 flex items-center gap-1.5 text-sm text-[#b4483a]"><CircleAlert size={14} strokeWidth={1.5} />{err}</p>}
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <button onClick={save} disabled={busy} className="btn btn-gold rounded-full bg-cocoa px-6 py-2.5 text-sm text-[color:var(--btn-text)] disabled:opacity-60">{busy ? "Saving…" : "Save reply"}</button>
+          <button onClick={onClose} className="btn rounded-full border border-line-ui px-5 py-2.5 text-sm text-ink">Cancel</button>
+          {reply && <button onClick={clear} disabled={busy} className="btn ml-auto text-sm text-mute underline underline-offset-4 hover:text-[#b4483a]">Clear reply</button>}
+        </div>
+      </div>
+    </div>
   );
 }
 

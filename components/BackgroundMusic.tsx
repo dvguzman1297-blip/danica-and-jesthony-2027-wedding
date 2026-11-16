@@ -64,7 +64,7 @@ export default function BackgroundMusic() {
 
   return (
     <>
-      <audio ref={audioRef} src={SRC} loop preload="auto" autoPlay />
+      <audio ref={audioRef} src={SRC} loop preload="metadata" autoPlay />
       <div
         ref={boxRef}
         onPointerEnter={(e) => e.pointerType === "mouse" && setOpen(true)}

@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 
 // One shared flower video fixed behind the whole page, with a dark layer over it.
 // The video stays still while the content scrolls over it (no parallax drift).
-// It is skipped on phones, data-saver connections and reduced-motion; they get the dark gold-tinted backdrop instead.
+// It is skipped for data-saver connections and reduced-motion; they get the dark gold-tinted backdrop instead.
 export default function BackgroundVideo() {
   const [play, setPlay] = useState(false);
   useEffect(() => {
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    const wide = window.matchMedia("(min-width: 768px)").matches;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setPlay(wide && !calm && !conn?.saveData);
+    setPlay(!calm && !conn?.saveData);
   }, []);
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-[#1f1a17]" aria-hidden="true">

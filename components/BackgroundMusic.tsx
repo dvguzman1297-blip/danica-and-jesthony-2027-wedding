@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Volume1, Volume2, VolumeX } from "lucide-react";
 
 // Put your file at public/music.mp3
-const SRC = "/music-v2.mp3"; // 64 kbps copy of music.mp3 (2.7 MB instead of 4.9 MB)
+const SRC = "/music-v3.mp3"; // 64 kbps copy of music.mp3 (2.7 MB instead of 4.9 MB)
 
 export default function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
